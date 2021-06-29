@@ -1,0 +1,266 @@
+---
+title: "High Note Free to Fee Strategy Analysis"
+author: "Joy"
+date: "2/24/2021"
+output: html_document
+---
+```{r setup}
+#install.packages("MatchIt")
+#install.packages("pastecs")
+#install.packages("gridExtra")
+#install.packages("flextable")
+#install.packages("systemfonts")
+library(flextable)
+library(pastecs)
+library(MatchIt)
+library(tidyverse)
+library(gridExtra)
+```
+
+```{r import data}
+setwd("/Users/joychen/OneDrive - UC Irvine/277Customer/Midterm")
+data <- read.csv("HighNote Data Midterm.csv") %>% select(-ID) 
+head(data,4)
+```
+
+# 1. Summary statistics  
+Generate descriptive statistics for the key variables in the data set.  
+```{r}
+options(scipen=999) #avoid scientific notations in the chart
+options(digits=2)
+
+stats_adopter <- t(stat.desc(data[data$adopter == 1,])[4:13,][-c(4,7,8, 9),])
+stats_adopter <- cbind(adopter = 1, n = nrow(data[data$adopter == 1,]),stats_adopter)
+stats_non_adopter <- t(stat.desc(data[data$adopter == 0,])[4:13,][-c(4,7,8, 9),])
+stats_non_adopter <- cbind(adopter = 0, n = nrow(data[data$adopter == 0,]),stats_non_adopter)
+stats <- rbind(stats_non_adopter,stats_adopter)
+stats <- subset(tibble::rownames_to_column(as.data.frame(stats), "item"),
+       select = c(2,3,1,8,9,4,5,6,7))
+stats <- flextable(stats) %>% merge_v(j = c("adopter","n")) %>%
+  hline(i=15)
+stats
+```
+
+### Comparison   
+Analyze the mean for each variable by the outcome status (subscriber or not).  
+```{r}
+compare <- data %>%
+  group_by(adopter) %>%
+  summarise_all(funs(mean(., na.rm = T)))
+compare
+```
+Before diving into any further analysis, we see that subscribers have more than double the number of friends, double the amount of music they listen to, double the playlists, triple the amount of music liked and shouts, and four time the posts. There's a high correlation between being a subscriber and the amount of engagement they do on the platform. Either they're a hardcore user that drove them to subscribe, or that paying the service drive them to use the platform more.
+
+### Visualization
+A quick view of the distribution of all the variables. These distribution chart is used to determine which variables we will need to take log values.  
+Non-binary variables with skewed distribution will be logged later.  
+```{r}
+data_distribution <- data %>%
+  as_data_frame() %>%
+  select_if(is.numeric) %>%
+  gather(key = "variable", value = "value")
+ggplot(data_distribution, aes(value)) +
+  geom_density() +
+  facet_wrap(~variable,scales = "free") +
+  geom_histogram()
+```
+
+# 2. Propensity Score Matching (PSM) 
+We would like to learn whether having subscriber friends affects the likelihood of becoming an adopter.
+
+### Pre-analysis using non-matched data
+We first look the mean of number of friends that are subscribers in the two groups (adopter or not).
+```{r}
+# distribution of the outcome
+data %>%
+  group_by(adopter) %>%
+  summarise(num_of_people = n(),
+            avg_subscriber_friends = mean(subscriber_friend_cnt))
+```
+We create a new variable called "friends_treatment" and add dummy variable 1 for users who have friends who are subscribers
+```{r}
+data$friends_treatment <- ifelse(data$subscriber_friend_cnt >= 1, 1,0)
+
+# t-test difference-in-means: outcome with non-matching friends_treatment
+options(scipen=0)
+with(data, t.test(adopter ~ friends_treatment))
+```
+The difference of the means between the two groups is significant. it seems that there's a strong correlation between having subscriber friends and subscribing. We will use PSM to further make sure this conclusion is accurate by eliminating other potential factors.
+
+```{r}
+# the covariates we will analyze
+cov <-c("age","male","friend_cnt","avg_friend_age", "avg_friend_male",
+        "friend_country_cnt", "songsListened", 
+        "lovedTracks", "posts", "playlists", "shouts", "tenure", "good_country")
+
+# calculate the mean for each covariate by the treatment status
+compare_treatment <- data %>%
+  group_by(friends_treatment) %>%
+  summarise_all(funs(mean(., na.rm = T)))
+compare_treatment
+```
+
+```{r}
+output0 = NULL
+for (i in 1:length(cov)){
+  name = cov[i]
+  p_value = t.test(data[, name] ~ data$friends_treatment)$p.value
+  output0 <- rbind(output0, data.frame(name, p_value))
+}
+print(output0) # t-test diff in means for pre match data
+```
+### Propensity score estimation
+Variables we will take logs: age, friend_cnt, avg_friend_age, friend_country_cnt, subscriber_friend_cnt, songsListened, lovedTracks, playlists, shouts, posts.
+We do not need to take logs for binary variables and avg_friend_male, tenure (both normally distributed).
+```{r friends_ps}
+options(scipen=0)
+friends_ps <- glm(friends_treatment ~ log(age) + male +log(friend_cnt+1) + 
+                    log(avg_friend_age+1)  + avg_friend_male+ + 
+                    log(friend_country_cnt+1) + log(songsListened+1) + 
+                    log(lovedTracks+1) + log(posts+1) + log(playlists+1) + 
+                    log(shouts+1) + tenure + good_country, 
+                  family = binomial(), data = data)
+summary(friends_ps)
+```
+```{r predicted propensity score}
+# predicted propensity score
+prs_df <- data.frame(pr_score = predict(friends_ps, type = "response"),
+                     treatment = friends_ps$model$friends_treatment)
+head(prs_df,3)
+```
+### Examine the region of common support
+```{r chart prop of having adopter friends}
+# plot histogram of treatment status
+labs <- paste("Treatment type:", 
+              c("Treatment w/ subscriber friends", "Control w/o subscriber friends"))
+prs_df %>%
+  mutate(treatment_lab = ifelse(treatment == 1, labs[1], labs[2])) %>%
+  ggplot(aes(x = pr_score)) +
+  geom_histogram(color = "white") +
+  facet_wrap(~treatment_lab) +
+  xlab("Probability of having subscriber friends") +
+  theme_bw()
+```
+### Executing a matching algorithm
+```{r}
+# MatchIt does not allow missing values
+sum(is.na(data))  # no missing data in our data
+
+mod_match <- matchit(friends_treatment ~ log(age) + male +log(friend_cnt+1) + 
+                       log(avg_friend_age+1)  + avg_friend_male+ + 
+                       log(friend_country_cnt+1) + log(songsListened+1) + 
+                       log(lovedTracks+1) + log(posts+1) + log(playlists+1) + 
+                       log(shouts+1) + tenure + good_country, 
+                     method = "nearest", data = data, caliper = .05)
+
+# the "distance" in the final data set is the propensity score
+plot(mod_match,type = "jitter")
+```
+```{r}
+summary(mod_match)
+```
+```{r}
+# create a dataframe containing only the matched data
+dta_m <- match.data(mod_match)
+dim(dta_m) 
+```
+### Difference in means
+The means below indicate that we have attained a high degree of balance on the 13 covariates included in the model.
+```{r}
+treatment_compare <- dta_m %>%
+  group_by(friends_treatment) %>%
+  select(one_of(cov)) %>%
+  summarise_all(funs(mean))
+treatment_compare
+```
+```{r}
+# t-test other variables with the treatment variable
+output = NULL
+for (i in 1:length(cov)){
+  name = cov[i]
+  p_value = t.test(dta_m[, name] ~ dta_m$friends_treatment)$p.value
+  output <- rbind(output, data.frame(name, p_value))
+}
+print(output) 
+```
+We are not able to reject the null hypothesis of no mean difference for all covariate besides "lovedTracks". "loveTracks" is statistically significant (<.05) that there's a difference in the means between treatment and control group. 
+
+### Visual inspection
+```{r psm visualization, message=FALSE, warning=FALSE}
+fn_bal <- function(dta_m, variable) {
+  dta_m$variable <- dta_m[, variable]
+  dta_m$friends_treatment <- as.factor(dta_m$friends_treatment)
+  support <- c(min(dta_m$variable), max(dta_m$variable))
+  ggplot(dta_m, aes(x = distance, y = variable, color = friends_treatment)) +
+    geom_point(alpha = 0.2, size = 1.3) +
+    geom_smooth(method = "loess", se = F) +
+    xlab("Propensity score") +
+    ylab(variable) +
+    theme_bw() +
+    ylim(support)
+}
+    
+grid.arrange(
+  fn_bal(dta_m, "age"),
+  fn_bal(dta_m, "friend_cnt") + theme(legend.position = "none"),
+  fn_bal(dta_m, "avg_friend_age"),
+  fn_bal(dta_m, "avg_friend_male") + theme(legend.position = "none"),
+  fn_bal(dta_m, "friend_country_cnt"),
+  fn_bal(dta_m, "songsListened") + theme(legend.position = "none"),
+  fn_bal(dta_m, "lovedTracks"),
+  fn_bal(dta_m, "posts") + theme(legend.position = "none"),
+  fn_bal(dta_m, "playlists"),
+  fn_bal(dta_m, "shouts") + theme(legend.position = "none"),
+  fn_bal(dta_m, "tenure"),
+  fn_bal(dta_m, "good_country") + theme(legend.position = "none"),
+  nrow = 6, widths = c(16, 8)
+)
+```
+### Estimating treatment effects  
+```{r}
+# method1: t-test
+with(dta_m, t.test(adopter ~ friends_treatment))
+```
+```{r}
+# method2: OLS
+lm_treat <- glm(adopter ~ friends_treatment, data = dta_m)
+summary(lm_treat)
+```
+Conclusion: Yes, having (a) subscriber friend(s) has a positive effect moving a user from free to fee tier. Looking at the coefficient of the equation, when a user has one or more subscriber friends, it increases the odds ratio of subscribing by 10%.  
+```{r}
+exp(0.05692)
+```
+
+# 3. Regression Analyses
+Use a logistic regression approach to test which variables (including subscriber friends) are significant for explaining the likelihood of becoming an adopter.  
+
+We will use the matched data and the logged variables from question 3,adding logged "subscriber_friend_cnt", to run a logistic model.  
+```{r}
+model <- glm(adopter ~ log(age) + male +log(friend_cnt+1) + 
+               log(avg_friend_age+1)  + avg_friend_male+ + 
+               log(friend_country_cnt+1) + log(subscriber_friend_cnt+1) + 
+               log(songsListened+1) + log(lovedTracks+1) + log(posts+1) + 
+               log(playlists+1) + log(shouts+1) + tenure + good_country, 
+             family = binomial(), data = dta_m)
+summary(model)
+```
+```{r}
+# remove variables that are not statistically significant
+model2 <- glm(adopter ~ log(age) + male + 
+               log(avg_friend_age+1) + 
+               log(subscriber_friend_cnt+1) + 
+               log(songsListened+1) + log(lovedTracks+1) + log(posts+1) + 
+               log(playlists+1) + log(shouts+1) + tenure + good_country, 
+             family = binomial(), data = dta_m)
+summary(model2)
+```
+### Interpretation and conclusion:   
+Keeping only the variables that are statistically significant, and reading from the coefficient, we see that the key two factors that influence users to go from free tier to fee tier are subscriber_friend_cnt and avg_friend_age.  
+
+When the subscriber_friend_cnt go up by 1%, the odds ratio that they subscribe goes up by 3.1% ((1.01)^0.75567=1.0075). When the avg_friend_age. go up by 0.75%, the odds ratio that they subscribe goes up by 0.58% ((1.01)^0.57920 =1.0058).  
+
+At the same time,  High Note should be take note of variables with negative coefficients: good_country, shouts and tenure. 1% increase in good_country is associated with a 0.49% decrease in odds of subscribing; 1% increase in shouts is associated with a 0.012% (1.01^(-0.11759)=0.998) decrease in probability of subscribing; 1% increase in tenure is associated with a 0.009% decrease in odds of subscribing.  
+
+Peer influence also plays a significant role. We used PSM to match people with similar conditions and came to the conclusion that there is a positive correlation between have friends who are adopters and subscribing. This might be due to homophily, people who have similar behavior will befriends each other, or it could also be because seeing a friend subscribe, push the user to subscribe too. With this in mind, High Note should engage in more referral marketing campaigns, such as getting perks when your friends subscribe. This way, people will reach out to their own social network. Freemium users are likely to convert to premium, and the user base will grow as well. Also, High Note should also consider translating their platform as there are good amount of paid user from countries outside ot the US or UK.  
+
+Lastly, we want to provide some insight to High Note for keeping their users engaged and not look elsewhere. As shown in the visualization chart, engagement wise, having more friends is not better. High Note should look into the platform design to encourage users only send friend invitation people they know or are interacting frequently. Make sure that the platform is designed to be social, such as enabling friends see each others' activity. From the PSM analysis, we also know that having friends that subscribe to the service also have like the music they're listening more. If their friends can see the music they like, there will be a positive cycle to keep users coming back for more.  
