@@ -7,7 +7,7 @@ The “freemium” business model — widely used by online services such as Lin
 	  •	However, premium subscribers are rare  
     
 More useful background information in the following paper:  
-https://www.dropbox.com/s/0elh9skbuys9ytw/oestreicher-singer%20%26%20zalmanson%202013-misq.pdf?dl=0    
+https://is.gd/Lis1HS    
   
 High Note is an anonymized real music streaming company --- similar to Last.fm, Spotify or Pandora --- that uses a freemium business model.   
 Here I am working on High Note customer data, including:    
