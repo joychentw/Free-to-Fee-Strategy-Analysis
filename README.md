@@ -1,5 +1,5 @@
 # Free-to-Fee-Strategy Analysis
-Feb 20, 2021
+Feb, 2021
 
 ## Introduction
 The “freemium” business model — widely used by online services such as LinkedIn, Match.com, Dropbox, and music-listening sites — divides user populations into groups that use the service for free and groups that pay a fee for additional features. Key points related to the freemium model:   
