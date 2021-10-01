@@ -346,7 +346,7 @@ prs_df %>%
     ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 
 ![](hightnotes_markdown_r_code_files/figure-gfm/chart%20prop%20of%20having%20adopter%20friends-1.png)<!-- -->
-\#\#\# Executing a matching algorithm
+### Executing a matching algorithm
 
 ``` r
 # MatchIt does not allow missing values
