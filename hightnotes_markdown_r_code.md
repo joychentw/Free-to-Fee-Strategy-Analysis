@@ -574,7 +574,7 @@ grid.arrange(
 ```
 
 ![](hightnotes_markdown_r_code_files/figure-gfm/psm%20visualization-1.png)<!-- -->
-\#\#\# Estimating treatment effects
+### Estimating treatment effects
 
 ``` r
 # method1: t-test
