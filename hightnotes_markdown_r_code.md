@@ -775,7 +775,7 @@ premium, and the user base will grow as well. Also, High Note should
 also consider translating their platform as there are good amount of
 paid user from countries outside of the US or UK.
 
-Lastly,to keep High Note users engaged and not look elsewhere. High Note
+Lastly, to keep High Note users engaged and not look elsewhere. High Note
 should look into the platform design to encourage users only send friend
 invitation people they know or are interacting frequently. As shown in the visualization
 chart, having more friends does not improve engagement unless those "friends" are people the users know. The PSM analysis also shows that having
