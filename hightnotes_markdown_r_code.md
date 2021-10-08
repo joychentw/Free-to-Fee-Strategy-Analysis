@@ -764,7 +764,8 @@ subscribing.
 - 1% increase in tenure is associated with a 0.009% decrease in odds of
 subscribing.
   
-There is also a positive correlation between having friends who are adopters and
+Other less drastic yet statistically significant finding includes:  
+There is a positive correlation between having friends who are adopters and
 subscribing. This might be due to homophily, people who have similar
 behavior will befriends each other, or it could also be because seeing a
 friend subscribe, push the user to subscribe too. With this in mind,
