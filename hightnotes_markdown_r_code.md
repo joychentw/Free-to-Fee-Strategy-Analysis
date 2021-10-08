@@ -747,21 +747,22 @@ The key two factors that
 influence users to go from free tier to fee tier are
 subscriber\_friend\_cnt and avg\_friend\_age.
 
-keeping only the variables that are statistically significant and
+Keeping only the variables that are statistically significant and
 reading from the coefficient, the result shows when the subscriber\_friend\_cnt go up by 1%, the odds ratio that they
 subscribe goes up by 3.1% ((1.01)^0.75567=1.0075). When the
 avg\_friend\_age. go up by 0.75%, the odds ratio that they subscribe
 goes up by 0.58% ((1.01)^0.57920 =1.0058).
 
-At the same time, High Note should be take note of variables with
-negative coefficients: good\_country, shouts and tenure. 1% increase in
-good\_country is associated with a 0.49% decrease in odds of
-subscribing; 1% increase in shouts is associated with a 0.012%
-(1.01^(-0.11759)=0.998) decrease in probability of subscribing; 1%
-increase in tenure is associated with a 0.009% decrease in odds of
+At the same time, High Note should take note of variables with
+negative coefficients: good\_country, shouts and tenure.  
+- 1% increase in good\_country is associated with a 0.49% decrease in odds of
+subscribing.  
+- 1% increase in shouts is associated with a 0.012%
+(1.01^(-0.11759)=0.998) decrease in probability of subscribing.  
+- 1% increase in tenure is associated with a 0.009% decrease in odds of
 subscribing.
 
-Peer influence also plays a significant role. We used PSM to match
+The analysis shows that peer influence plays a significant role. We used PSM to match
 people with similar conditions and came to the conclusion that there is
 a positive correlation between have friends who are adopters and
 subscribing. This might be due to homophily, people who have similar
@@ -772,15 +773,13 @@ getting perks when your friends subscribe. This way, people will reach
 out to their own social network. Freemium users are likely to convert to
 premium, and the user base will grow as well. Also, High Note should
 also consider translating their platform as there are good amount of
-paid user from countries outside ot the US or UK.
+paid user from countries outside of the US or UK.
 
-Lastly, we want to provide some insight to High Note for keeping their
-users engaged and not look elsewhere. As shown in the visualization
-chart, engagement wise, having more friends is not better. High Note
+Lastly,to keep High Note users engaged and not look elsewhere. High Note
 should look into the platform design to encourage users only send friend
-invitation people they know or are interacting frequently. Make sure
-that the platform is designed to be social, such as enabling friends see
-each others’ activity. From the PSM analysis, we also know that having
-friends that subscribe to the service also have like the music they’re
-listening more. If their friends can see the music they like, there will
+invitation people they know or are interacting frequently. As shown in the visualization
+chart, having more friends does not improve engagement unless those "friends" are people the users know. The PSM analysis also shows that having
+friends that subscribe to the service also have liked the music they’re
+listening more. Therefore, if a user's friends can see the music they like, there will
 be a positive cycle to keep users coming back for more.
+
