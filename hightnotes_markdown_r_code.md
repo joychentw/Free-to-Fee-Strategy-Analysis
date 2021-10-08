@@ -743,13 +743,15 @@ summary(model2)
 
 ### Interpretation and conclusion:
 
-The key two factors that
+The analysis shows that peer influence plays a significant role. The key two factors that
 influence users to go from free tier to fee tier are
 subscriber\_friend\_cnt and avg\_friend\_age.
 
 Keeping only the variables that are statistically significant and
-reading from the coefficient, the result shows when the subscriber\_friend\_cnt go up by 1%, the odds ratio that they
-subscribe goes up by 3.1% ((1.01)^0.75567=1.0075). When the
+reading from the coefficient, the result shows:  
+- when the subscriber\_friend\_cnt go up by 1%, the odds ratio that they
+subscribe goes up by 3.1% ((1.01)^0.75567=1.0075).  
+- When the
 avg\_friend\_age. go up by 0.75%, the odds ratio that they subscribe
 goes up by 0.58% ((1.01)^0.57920 =1.0058).
 
@@ -761,10 +763,8 @@ subscribing.
 (1.01^(-0.11759)=0.998) decrease in probability of subscribing.  
 - 1% increase in tenure is associated with a 0.009% decrease in odds of
 subscribing.
-
-The analysis shows that peer influence plays a significant role. We used PSM to match
-people with similar conditions and came to the conclusion that there is
-a positive correlation between have friends who are adopters and
+  
+There is also a positive correlation between having friends who are adopters and
 subscribing. This might be due to homophily, people who have similar
 behavior will befriends each other, or it could also be because seeing a
 friend subscribe, push the user to subscribe too. With this in mind,
