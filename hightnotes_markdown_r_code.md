@@ -743,12 +743,12 @@ summary(model2)
 
 ### Interpretation and conclusion:
 
-Keeping only the variables that are statistically significant, and
-reading from the coefficient, we see that the key two factors that
+The key two factors that
 influence users to go from free tier to fee tier are
 subscriber\_friend\_cnt and avg\_friend\_age.
 
-When the subscriber\_friend\_cnt go up by 1%, the odds ratio that they
+keeping only the variables that are statistically significant and
+reading from the coefficient, the result shows when the subscriber\_friend\_cnt go up by 1%, the odds ratio that they
 subscribe goes up by 3.1% ((1.01)^0.75567=1.0075). When the
 avg\_friend\_age. go up by 0.75%, the odds ratio that they subscribe
 goes up by 0.58% ((1.01)^0.57920 =1.0058).
