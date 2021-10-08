@@ -768,19 +768,16 @@ Other less drastic yet statistically significant finding includes:
 There is a positive correlation between having friends who are adopters and
 subscribing. This might be due to homophily, people who have similar
 behavior will befriends each other, or it could also be because seeing a
-friend subscribe, push the user to subscribe too. With this in mind,
-High Note should engage in more referral marketing campaigns, such as
-getting perks when your friends subscribe. This way, people will reach
-out to their own social network. Freemium users are likely to convert to
-premium, and the user base will grow as well. Also, High Note should
-also consider translating their platform as there are good amount of
-paid user from countries outside of the US or UK.
-
-Lastly, to keep High Note users engaged and not look elsewhere. High Note
-should look into the platform design to encourage users only send friend
-invitation people they know or are interacting frequently. As shown in the visualization
+friend subscribe, push the user to subscribe too.  
+  
+As shown in the visualization
 chart, having more friends does not improve engagement unless those "friends" are people the users know. The PSM analysis also shows that having
 friends that subscribe to the service also have liked the music they’re
-listening more. Therefore, if a user's friends can see the music they like, there will
-be a positive cycle to keep users coming back for more.
-
+listening more.  
+  
+With these insights in mind, I would suggest High Note consider the followings:   
+1. Engage in more referral marketing campaigns, such as
+getting perks when a user's friends subscribe.  
+2. Engage in older user group by creating lanuages and marketing material that resonates with them as they are more likely to subscribe.    
+3. Consider providing multiple languages on the platform as there are good amount of
+paid user from countries outside of the US or UK.  
